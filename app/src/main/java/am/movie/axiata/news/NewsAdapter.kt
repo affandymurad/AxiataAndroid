@@ -2,6 +2,7 @@ package am.movie.axiata.news
 
 import am.movie.axiata.Article
 import am.movie.axiata.R
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,6 +26,16 @@ class NewsAdapter : RecyclerView.Adapter<NewsAdapter.ViewHolder>() {
         mOnItemArticleClickListener = onItemArticleClickListener
     }
 
+    fun filterTitle(title: String, fullList : ArrayList<Article>) {
+        val temp = java.util.ArrayList<Article>()
+        fullList.filterTo(temp) {
+            it.source.name!!.toLowerCase().contains(title.toLowerCase()) || it.title!!.toLowerCase().contains(title.toLowerCase())
+        }
+        newsList = temp
+        notifyDataSetChanged()
+    }
+
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_article, parent, false))
     }
@@ -43,7 +54,6 @@ class NewsAdapter : RecyclerView.Adapter<NewsAdapter.ViewHolder>() {
         private val llArticle = view.llArticle
         private val tvArticle = view.tvArticle
         private val tvDate = view.tvDate
-//        private val tvTime = view.tvTime
         private val ivArticle = view.ivArticle
         private val tvSource = view.tvSource
 

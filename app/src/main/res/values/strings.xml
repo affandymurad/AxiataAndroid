@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">Axiata</string>
     <string name="empty">User Empty</string>
+    <string name="search">Search</string>
     <string name="chrome">Kindly install Google Chrome to use this feature</string>
+    <string name="source_or_title">Source or Title</string>
 </resources>

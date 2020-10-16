@@ -3,13 +3,17 @@ package am.movie.axiata.news
 import am.movie.axiata.Article
 import am.movie.axiata.R
 import am.movie.axiata.Response
+import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -23,6 +27,9 @@ class NewsActivity : AppCompatActivity(), NewsContract.View{
     private val adapter by lazy { NewsAdapter() }
     private var newsList = ArrayList<Article>()
     private var isFinish = false
+
+    var isSearch = false
+    var search: SearchView?= null
 
     private var page = 1
 
@@ -85,10 +92,59 @@ class NewsActivity : AppCompatActivity(), NewsContract.View{
         mPresenter?.requestNewsList("ID", category, page)
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_search, menu)
+        val itemSearch = menu?.findItem(R.id.mnSearch)
+
+        itemSearch?.isVisible = isSearch
+
+        val searchManager = getSystemService(Context.SEARCH_SERVICE) as SearchManager
+        val searchView = menu?.findItem(R.id.mnSearch)?.actionView as SearchView
+        searchView.run {
+            imeOptions = 0
+            queryHint = getString(R.string.source_or_title)
+            setSearchableInfo(searchManager.getSearchableInfo(componentName))
+            setOnQueryTextListener(object: SearchView.OnQueryTextListener {
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    if (newText!!.isBlank()) {
+                        adapter.newsList = newsList
+                        adapter.notifyDataSetChanged()
+                    } else {
+                        adapter.filterTitle(newText, newsList)
+                    }
+                    return true
+                }
+
+                override fun onQueryTextSubmit(query: String?): Boolean {
+                    searchView.clearFocus()
+                    return true
+                }
+            })
+        }
+        search = searchView
+        return true
+    }
+
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) {
+            onBackPressed()
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     private fun cleanRefreshItem() {
         newsList.clear()
         adapter.newsList = newsList
         adapter.notifyDataSetChanged()
+    }
+
+    private fun clearSearch() {
+        isSearch = false
+        search?.isIconified = true
+        search?.isIconified = true
+        search?.clearFocus()
+        invalidateOptionsMenu()
     }
 
 
@@ -102,6 +158,8 @@ class NewsActivity : AppCompatActivity(), NewsContract.View{
             rvArticle.visibility = View.GONE
             tvError.visibility = View.VISIBLE
         } else {
+            isSearch = true
+            invalidateOptionsMenu()
             rvArticle?.visibility = View.VISIBLE
             tvError?.visibility = View.GONE
         }
@@ -117,6 +175,7 @@ class NewsActivity : AppCompatActivity(), NewsContract.View{
 
     override fun showLoading() {
         srArticle.isRefreshing = true
+        clearSearch()
     }
 
     override fun dismissLoading() {
